@@ -1,0 +1,1 @@
+# Generator for assembly functions

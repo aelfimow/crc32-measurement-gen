@@ -1,0 +1,4 @@
+generate.exe
+generate.o
+rdrand_func_linux.o
+rdrand_func_windows.o
