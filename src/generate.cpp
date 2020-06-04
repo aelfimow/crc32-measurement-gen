@@ -13,7 +13,7 @@ struct param_regs
     r64 &tmp_reg;
 };
 
-static void gen_function(param_regs &pr, r64 &out_reg, size_t value)
+template <typename T> void gen_function(param_regs &pr, r64 &out_reg, size_t value)
 {
     std::string const func_name { "crc32_8" };
 
@@ -44,7 +44,7 @@ static void gen_function(param_regs &pr, r64 &out_reg, size_t value)
     TEST(pr.count_reg, pr.count_reg);
     JZ(func_end);
 
-    m8 buf_addr { pr.p_data_reg };
+    T buf_addr { pr.p_data_reg };
 
     CRC32(out_reg, buf_addr);
     ADD(pr.p_data_reg, pr.tmp_reg);
@@ -84,7 +84,7 @@ try
 
         r64 &out_reg { RAX };
 
-        gen_function(windows_param_regs, out_reg, 1);
+        gen_function<m8>(windows_param_regs, out_reg, 1);
     }
 
     if (for_linux)
@@ -96,7 +96,7 @@ try
 
         r64 &out_reg { RAX };
 
-        gen_function(linux_param_regs, out_reg, 1);
+        gen_function<m8>(linux_param_regs, out_reg, 1);
     }
 
     return EXIT_SUCCESS;
