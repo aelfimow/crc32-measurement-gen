@@ -13,14 +13,26 @@ struct param_regs
     r64 &tmp_reg;
 };
 
-template <typename T> void gen_function(std::string const &func_name, param_regs &pr, r64 &out_reg, size_t value)
+template
+<
+    typename T1,
+    typename T2
+>
+void gen_function
+(
+    std::string const &func_name,
+    param_regs &pr,
+    r64 &out_reg_full,
+    T2 &out_reg_working,
+    size_t value
+)
 {
     comment("uint32_t " + func_name + "(uint32_t crc_iv, const void *p_data, size_t count)");
 
     comment("crc_iv is in " + pr.crc_reg.name());
     comment("p_data is in " + pr.p_data_reg.name());
     comment("count is in " + pr.count_reg.name());
-    comment("output crc is in " + out_reg.name());
+    comment("output crc is in " + out_reg_full.name());
     comment("temporary register is " + pr.tmp_reg.name());
 
     global(func_name);
@@ -30,7 +42,7 @@ template <typename T> void gen_function(std::string const &func_name, param_regs
 
     label(func_name);
 
-    MOV(out_reg, pr.crc_reg);
+    MOV(out_reg_full, pr.crc_reg);
 
     imm64 inc_value { value };
     MOV(pr.tmp_reg, inc_value);
@@ -42,9 +54,9 @@ template <typename T> void gen_function(std::string const &func_name, param_regs
     TEST(pr.count_reg, pr.count_reg);
     JZ(func_end);
 
-    T buf_addr { pr.p_data_reg };
+    T1 buf_addr { pr.p_data_reg };
 
-    CRC32(out_reg, buf_addr);
+    CRC32(out_reg_working, buf_addr);
     ADD(pr.p_data_reg, pr.tmp_reg);
     DEC(pr.count_reg);
     JMP(func_start);
@@ -80,12 +92,10 @@ try
             RCX, RDX, R8, R9
         };
 
-        r64 &out_reg { RAX };
-
-        gen_function<m8>("crc32_8", windows_param_regs, out_reg, 1);
-        //gen_function<m16>("crc32_16", windows_param_regs, out_reg, 2);
-        //gen_function<m32>("crc32_32", windows_param_regs, out_reg, 4);
-        //gen_function<m64>("crc32_64", windows_param_regs, out_reg, 8);
+        gen_function<m8, r32>("crc32_8", windows_param_regs, RAX, EAX, 1);
+        gen_function<m16, r32>("crc32_16", windows_param_regs, RAX, EAX, 2);
+        gen_function<m32, r32>("crc32_32", windows_param_regs, RAX, EAX, 4);
+        gen_function<m64, r64>("crc32_64", windows_param_regs, RAX, RAX, 8);
     }
 
     if (for_linux)
@@ -95,12 +105,10 @@ try
             RDI, RSI, RDX, RCX
         };
 
-        r64 &out_reg { RAX };
-
-        gen_function<m8>("crc32_8", linux_param_regs, out_reg, 1);
-        //gen_function<m16>("crc32_16", linux_param_regs, out_reg, 2);
-        //gen_function<m32>("crc32_32", linux_param_regs, out_reg, 4);
-        //gen_function<m64>("crc32_64", linux_param_regs, out_reg, 8);
+        gen_function<m8, r32>("crc32_8", linux_param_regs, RAX, EAX, 1);
+        gen_function<m16>("crc32_16", linux_param_regs, RAX, EAX, 2);
+        gen_function<m32>("crc32_32", linux_param_regs, RAX, EAX, 4);
+        gen_function<m64>("crc32_64", linux_param_regs, RAX, RAX, 8);
     }
 
     return EXIT_SUCCESS;
