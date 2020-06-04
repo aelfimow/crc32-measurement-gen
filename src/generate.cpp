@@ -13,10 +13,8 @@ struct param_regs
     r64 &tmp_reg;
 };
 
-template <typename T> void gen_function(param_regs &pr, r64 &out_reg, size_t value)
+template <typename T> void gen_function(std::string const &func_name, param_regs &pr, r64 &out_reg, size_t value)
 {
-    std::string const func_name { "crc32_8" };
-
     comment("uint32_t " + func_name + "(uint32_t crc_iv, const void *p_data, size_t count)");
 
     comment("crc_iv is in " + pr.crc_reg.name());
@@ -84,7 +82,10 @@ try
 
         r64 &out_reg { RAX };
 
-        gen_function<m8>(windows_param_regs, out_reg, 1);
+        gen_function<m8>("crc32_8", windows_param_regs, out_reg, 1);
+        //gen_function<m16>("crc32_16", windows_param_regs, out_reg, 2);
+        //gen_function<m32>("crc32_32", windows_param_regs, out_reg, 4);
+        //gen_function<m64>("crc32_64", windows_param_regs, out_reg, 8);
     }
 
     if (for_linux)
@@ -96,7 +97,10 @@ try
 
         r64 &out_reg { RAX };
 
-        gen_function<m8>(linux_param_regs, out_reg, 1);
+        gen_function<m8>("crc32_8", linux_param_regs, out_reg, 1);
+        //gen_function<m16>("crc32_16", linux_param_regs, out_reg, 2);
+        //gen_function<m32>("crc32_32", linux_param_regs, out_reg, 4);
+        //gen_function<m64>("crc32_64", linux_param_regs, out_reg, 8);
     }
 
     return EXIT_SUCCESS;
